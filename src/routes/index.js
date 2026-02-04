@@ -5,6 +5,7 @@ import usersRouter from './users.route.js';
 import authenticationsRouter from './authentications.route.js';
 import playlistsRouter from './playlists.route.js';
 import collaborationsRouter from './collaborations.route.js';
+import exportRouter from './export.route.js';
 
 const router = Router();
 
@@ -18,5 +19,7 @@ router.use('/authentications', authenticationsRouter);
 // Playlists & Collaborations
 router.use('/playlists', playlistsRouter);
 router.use('/collaborations', collaborationsRouter);
+// Export
+router.use('/export', exportRouter);
 
 export default router;
