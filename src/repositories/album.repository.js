@@ -14,7 +14,7 @@ export const selectAlbums = async () => {
 };
 
 export const selectAlbumById = async (id) => {
-  const result = await pool.query('SELECT id, name, year FROM albums WHERE id = $1', [id]);
+  const result = await pool.query('SELECT id, name, year, "coverUrl" FROM albums WHERE id = $1', [id]);
   return result.rows[0] ?? null;
 };
 
@@ -30,6 +30,14 @@ export const updateAlbumById = async ({ id, name, year }) => {
   const result = await pool.query(
     'UPDATE albums SET name = $1, year = $2, "updatedAt" = NOW() WHERE id = $3 RETURNING id, name, year',
     [name, year, id]
+  );
+  return result.rowCount;
+};
+
+export const updateAlbumCoverById = async ({ id, coverUrl }) => {
+  const result = await pool.query(
+    'UPDATE albums SET "coverUrl" = $1, "updatedAt" = NOW() WHERE id = $2 RETURNING id',
+    [coverUrl, id]
   );
   return result.rowCount;
 };

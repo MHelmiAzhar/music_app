@@ -3,8 +3,10 @@ import {
   getAlbums as getAlbumsService,
   getAlbumById as getAlbumByIdService,
   updateAlbum as updateAlbumService,
+  updateAlbumCover as updateAlbumCoverService,
   deleteAlbum as deleteAlbumService,
 } from '../services/album.service.js';
+import InvariantError from '../exceptions/InvariantError.js';
 
 export const createAlbum = async (req, res, next) => {
   try {
@@ -29,7 +31,9 @@ export const getAlbumById = async (req, res, next) => {
   try {
     const { id } = req.validatedParams ?? req.params;
     const album = await getAlbumByIdService(id);
-    res.json({ status: 'success', data: { album } });
+    const baseUrl = process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const coverUrl = album.coverUrl ? `${baseUrl}/uploads/covers/${album.coverUrl}` : null;
+    res.json({ status: 'success', data: { album: { ...album, coverUrl } } });
   } catch (err) {
     next(err);
   }
@@ -52,6 +56,18 @@ export const deleteAlbum = async (req, res, next) => {
     const { id } = req.validatedParams ?? req.params;
     await deleteAlbumService(id);
     res.status(200).json({ status: 'success', message: 'Album deleted' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const uploadAlbumCover = async (req, res, next) => {
+  try {
+    const { id } = req.validatedParams ?? req.params;
+    if (!req.file) throw new InvariantError('Cover file is required');
+
+    await updateAlbumCoverService({ id, coverFilename: req.file.filename });
+    res.status(201).json({ status: 'success', message: 'Sampul berhasil diunggah' });
   } catch (err) {
     next(err);
   }

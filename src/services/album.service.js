@@ -6,8 +6,11 @@ import {
   selectAlbumById,
   selectAlbumSongs,
   updateAlbumById,
+  updateAlbumCoverById,
   deleteAlbumById,
 } from '../repositories/album.repository.js';
+import fs from 'fs/promises';
+import path from 'path';
 
 export const createAlbum = async ({ name, year }) => {
   const albumId = nanoid(16);
@@ -25,6 +28,23 @@ export const getAlbumById = async (id) => {
 
   const songs = await selectAlbumSongs(id);
   return { ...album, songs };
+};
+
+export const updateAlbumCover = async ({ id, coverFilename }) => {
+  const album = await selectAlbumById(id);
+  if (!album) throw new NotFoundError('Album not found');
+
+  const updated = await updateAlbumCoverById({ id, coverUrl: coverFilename });
+  if (!updated) throw new NotFoundError('Album not found');
+
+  if (album.coverUrl) {
+    const oldCoverPath = path.resolve(process.cwd(), 'uploads', 'covers', album.coverUrl);
+    try {
+      await fs.unlink(oldCoverPath);
+    } catch {
+      // ignore if old file is missing
+    }
+  }
 };
 
 export const updateAlbum = async ({ id, name, year }) => {
