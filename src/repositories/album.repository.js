@@ -46,3 +46,26 @@ export const deleteAlbumById = async (id) => {
   const result = await pool.query('DELETE FROM albums WHERE id = $1', [id]);
   return result.rowCount;
 };
+
+export const insertAlbumLike = async ({ id, albumId, userId }) => {
+  await pool.query(
+    'INSERT INTO album_likes(id, "albumId", "userId") VALUES($1, $2, $3)',
+    [id, albumId, userId]
+  );
+};
+
+export const deleteAlbumLike = async ({ albumId, userId }) => {
+  const result = await pool.query(
+    'DELETE FROM album_likes WHERE "albumId" = $1 AND "userId" = $2',
+    [albumId, userId]
+  );
+  return result.rowCount;
+};
+
+export const selectAlbumLikesCount = async (albumId) => {
+  const result = await pool.query(
+    'SELECT COUNT(*)::int AS count FROM album_likes WHERE "albumId" = $1',
+    [albumId]
+  );
+  return result.rows[0]?.count ?? 0;
+};

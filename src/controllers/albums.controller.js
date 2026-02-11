@@ -5,6 +5,9 @@ import {
   updateAlbum as updateAlbumService,
   updateAlbumCover as updateAlbumCoverService,
   deleteAlbum as deleteAlbumService,
+  likeAlbum as likeAlbumService,
+  unlikeAlbum as unlikeAlbumService,
+  getAlbumLikes as getAlbumLikesService,
 } from '../services/album.service.js';
 import InvariantError from '../exceptions/InvariantError.js';
 
@@ -68,6 +71,38 @@ export const uploadAlbumCover = async (req, res, next) => {
 
     await updateAlbumCoverService({ id, coverFilename: req.file.filename });
     res.status(201).json({ status: 'success', message: 'Sampul berhasil diunggah' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const likeAlbum = async (req, res, next) => {
+  try {
+    const { id: albumId } = req.validatedParams ?? req.params;
+    const userId = req.auth.id;
+    await likeAlbumService({ albumId, userId });
+    res.status(201).json({ status: 'success', message: 'Album liked' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const unlikeAlbum = async (req, res, next) => {
+  try {
+    const { id: albumId } = req.validatedParams ?? req.params;
+    const userId = req.auth.id;
+    await unlikeAlbumService({ albumId, userId });
+    res.json({ status: 'success', message: 'Album like removed' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAlbumLikes = async (req, res, next) => {
+  try {
+    const { id: albumId } = req.validatedParams ?? req.params;
+    const likes = await getAlbumLikesService(albumId);
+    res.json({ status: 'success', data: { likes } });
   } catch (err) {
     next(err);
   }

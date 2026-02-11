@@ -8,9 +8,13 @@ import {
   updateAlbumById,
   updateAlbumCoverById,
   deleteAlbumById,
+  insertAlbumLike,
+  deleteAlbumLike,
+  selectAlbumLikesCount,
 } from '../repositories/album.repository.js';
 import fs from 'fs/promises';
 import path from 'path';
+import InvariantError from '../exceptions/InvariantError.js';
 
 export const createAlbum = async ({ name, year }) => {
   const albumId = nanoid(16);
@@ -55,4 +59,32 @@ export const updateAlbum = async ({ id, name, year }) => {
 export const deleteAlbum = async (id) => {
   const deleted = await deleteAlbumById(id);
   if (!deleted) throw new NotFoundError('Album not found');
+};
+
+export const likeAlbum = async ({ albumId, userId }) => {
+  const album = await selectAlbumById(albumId);
+  if (!album) throw new NotFoundError('Album not found');
+
+  const likeId = `album-like-${nanoid(16)}`;
+  try {
+    await insertAlbumLike({ id: likeId, albumId, userId });
+  } catch (err) {
+    if (err.code === '23505') throw new InvariantError('Album already liked');
+    if (err.code === '23503') throw new NotFoundError('Album or user not found');
+    throw err;
+  }
+};
+
+export const unlikeAlbum = async ({ albumId, userId }) => {
+  const album = await selectAlbumById(albumId);
+  if (!album) throw new NotFoundError('Album not found');
+
+  const deleted = await deleteAlbumLike({ albumId, userId });
+  if (!deleted) throw new NotFoundError('Album like not found');
+};
+
+export const getAlbumLikes = async (albumId) => {
+  const album = await selectAlbumById(albumId);
+  if (!album) throw new NotFoundError('Album not found');
+  return selectAlbumLikesCount(albumId);
 };
