@@ -1,0 +1,71 @@
+import pool from '../utils/db.js';
+
+export const insertAlbum = async ({ id, name, year }) => {
+  const result = await pool.query(
+    'INSERT INTO albums(id, name, year) VALUES($1, $2, $3) RETURNING id, name, year',
+    [id, name, year]
+  );
+  return result.rows[0];
+};
+
+export const selectAlbums = async () => {
+  const result = await pool.query('SELECT id, name, year FROM albums ORDER BY "createdAt" DESC');
+  return result.rows;
+};
+
+export const selectAlbumById = async (id) => {
+  const result = await pool.query('SELECT id, name, year, "coverUrl" FROM albums WHERE id = $1', [id]);
+  return result.rows[0] ?? null;
+};
+
+export const selectAlbumSongs = async (albumId) => {
+  const result = await pool.query(
+    'SELECT id, title FROM songs WHERE "albumId" = $1 ORDER BY "createdAt" DESC',
+    [albumId]
+  );
+  return result.rows;
+};
+
+export const updateAlbumById = async ({ id, name, year }) => {
+  const result = await pool.query(
+    'UPDATE albums SET name = $1, year = $2, "updatedAt" = NOW() WHERE id = $3 RETURNING id, name, year',
+    [name, year, id]
+  );
+  return result.rowCount;
+};
+
+export const updateAlbumCoverById = async ({ id, coverUrl }) => {
+  const result = await pool.query(
+    'UPDATE albums SET "coverUrl" = $1, "updatedAt" = NOW() WHERE id = $2 RETURNING id',
+    [coverUrl, id]
+  );
+  return result.rowCount;
+};
+
+export const deleteAlbumById = async (id) => {
+  const result = await pool.query('DELETE FROM albums WHERE id = $1', [id]);
+  return result.rowCount;
+};
+
+export const insertAlbumLike = async ({ id, albumId, userId }) => {
+  await pool.query(
+    'INSERT INTO album_likes(id, "albumId", "userId") VALUES($1, $2, $3)',
+    [id, albumId, userId]
+  );
+};
+
+export const deleteAlbumLike = async ({ albumId, userId }) => {
+  const result = await pool.query(
+    'DELETE FROM album_likes WHERE "albumId" = $1 AND "userId" = $2',
+    [albumId, userId]
+  );
+  return result.rowCount;
+};
+
+export const selectAlbumLikesCount = async (albumId) => {
+  const result = await pool.query(
+    'SELECT COUNT(*)::int AS count FROM album_likes WHERE "albumId" = $1',
+    [albumId]
+  );
+  return result.rows[0]?.count ?? 0;
+};
